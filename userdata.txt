@@ -1,0 +1,34 @@
+#!/bin/bash
+
+yum update -y
+yum install -y httpd
+
+systemctl start httpd
+systemctl enable httpd
+
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
+-H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+
+INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+http://169.254.169.254/latest/meta-data/instance-id)
+
+PRIVATE_IP=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+http://169.254.169.254/latest/meta-data/local-ipv4)
+
+PUBLIC_IP=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+http://169.254.169.254/latest/meta-data/public-ipv4)
+
+AZ=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+http://169.254.169.254/latest/meta-data/placement/availability-zone)
+
+echo "<html>
+<head><title>Mynthan AWS Lab</title></head>
+<body style='font-family: Arial; background-color:#111; color:#0f0; text-align:center; padding-top:50px;'>
+<h1>🚀 AWS Infrastructure Working</h1>
+<h2>Instance ID: $INSTANCE_ID</h2>
+<h2>Private IP: $PRIVATE_IP</h2>
+<h2>Public IP: $PUBLIC_IP</h2>
+<h2>Availability Zone: $AZ</h2>
+<h2>Built by Mynthan 😄</h2>
+</body>
+</html>" > /var/www/html/index.html
